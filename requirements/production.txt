@@ -1,0 +1,5 @@
+-r common.txt
+
+# Production
+gunicorn==23.0.0
+newrelic==10.3.1

@@ -1,0 +1,75 @@
+name: CI
+
+# Enable Buildkit and let compose use it to speed up image building
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+on:
+  pull_request:
+    branches: ['master', 'main']
+    paths-ignore: ['docs/**']
+
+  push:
+    branches: ['master', 'main']
+    paths-ignore: ['docs/**']
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+
+  # With no caching at all the entire ci process takes 3m to complete!
+  pytest:
+    runs-on: ubuntu-latest
+
+    env:
+      # Use SQLite for both local and CI environments
+      DATABASE_URL: 'sqlite:///test_db.sqlite3'
+      DJANGO_CONFIGURATION: Local
+      DJANGO_SETTINGS_MODULE: config.settings
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            requirements/*.txt
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/local.txt
+
+      - name: Check DB Migrations
+        run: |
+          python -c "import django; import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings'); os.environ.setdefault('DJANGO_CONFIGURATION', 'Local'); from configurations import importer; importer.install(check_options=False); django.setup();"
+          python manage.py makemigrations --check
+
+      - name: Run DB Migrations
+        run: |
+          python -c "import django; import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings'); os.environ.setdefault('DJANGO_CONFIGURATION', 'Local'); from configurations import importer; importer.install(check_options=False); django.setup();"
+          python manage.py migrate
+
+      - name: Test with pytest
+        run: |
+          python -c "import django; import os; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings'); os.environ.setdefault('DJANGO_CONFIGURATION', 'Local'); from configurations import importer; importer.install(check_options=False); django.setup();"
+          pytest -v
