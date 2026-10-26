@@ -6,12 +6,12 @@ ipython==8.30.0
 django-debug-toolbar==5.1.0
 
 # Code Quality
-ruff==0.11.5
-pre-commit==4.2.0
+ruff==0.17.2
+pre-commit==4.7.0
 
 # Testing
 mock==5.2.0
 factory-boy==3.3.3
-pytest-django==4.11.1
-coverage==7.8.0
+pytest-django==4.14.0
+coverage==7.17.0
 Faker==37.1.0
