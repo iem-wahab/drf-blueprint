@@ -1,141 +1,128 @@
-# DRF-Starter-Template
+# DRF Blueprint
 
-DRF-Starter-Template is a tailored Django/DRF project template built as a foundation for rapid development of scalable and maintainable RESTful APIs. The project is structured to ensure a clear separation between presentation, business logic, and data access, which simplifies development and long-term maintenance.
+A reusable Django REST Framework starter for building REST APIs with a consistent, maintainable structure.
 
-It uses consistent file names, clean code, clear separation for production and development, integrated code formatters and linters (with tests), and focuses on delivering consistent API responses, proper pagination, and robust error handling.
+I built this template because I kept repeating the same setup whenever I started a new Django API project. Instead of rebuilding the foundations each time, I wanted one place for the conventions and tools I regularly use: clear separation of concerns, consistent API responses, testing, and code quality checks.
 
----
+## What's included
 
-## Overview
+- **Service-selector architecture** — Keep API views focused on requests and responses, business logic in services, and database queries in selectors.
+- **Reusable base classes** — A `BaseModel` with UUID primary keys, timestamps, and soft deletion, plus a custom `BaseAPIView` for consistent API behavior.
+- **Consistent APIs** — Shared patterns for pagination, responses, and exception handling.
+- **Environment-specific settings** — Separate common, local, and production configuration.
+- **API documentation** — Automatically generated OpenAPI schema, Swagger UI, and ReDoc using drf-spectacular.
+- **Developer tooling** — Pytest, coverage, Ruff, pre-commit hooks, and GitHub Actions configuration.
 
-The project follows a modular architecture designed to promote clarity and scalability. Its structure is organized as follows:
+## Project structure
 
-- **Models:**
-  All models extend a central `BaseModel` that standardizes features across the project. This includes a UUID primary key, automatic timestamps, and soft-deletion, ensuring consistency and reducing boilerplate code.
+The template is organized so each layer has a clear responsibility:
 
-- **Views:**
-  Each API endpoint is implemented as its own view class (e.g., create, list, detail, update) by extending a custom `BaseAPIView`. This approach enforces a strict separation of concerns, keeping endpoint logic simple and focused.
+| Layer | Responsibility |
+| --- | --- |
+| **Models** | Define data structures and share common fields and behavior through `BaseModel`. |
+| **API views** | Handle HTTP requests and responses. Endpoints use focused view classes extending `BaseAPIView`. |
+| **Serializers** | Validate input and shape API output. |
+| **Services** | Handle business logic, data modifications, and side effects. |
+| **Selectors** | Centralize data retrieval and reusable queries. |
+| **Configuration** | Keep settings and dependencies organized by environment. |
 
-- **Business Logic:**
-  Complex operations and interactions are delegated to dedicated services (for data modifications and triggering side effects) and selectors (for optimized data retrieval). This separation aids in testability and maintainability.
+This approach helps keep endpoints readable and makes business logic easier to test and reuse.
 
-- **Configuration:**
-  Settings and dependency definitions are segregated into common, local, and production environments. A CI/CD pipeline provided in the **.github** folder automates testing and deployment processes.
+## Getting started
 
----
-
-## Getting Started
-
-### Clone the Repository
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/SaadRafiq4/DRF-Starter-Template.git
+git clone https://github.com/iem-wahab/drf-blueprint.git
+cd drf-blueprint
 ```
 
-### Set Up Your Environment
+### 2. Create a virtual environment
 
-**Create a Virtual Environment:**
-
-**Mac/Linux:**
+**macOS / Linux**
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-**Windows:**
+**Windows**
 
-```bash
+```powershell
 py -m venv venv
 venv\Scripts\activate
 ```
 
-**Install Dependencies:**
-
-For local development, run:
+### 3. Install dependencies
 
 ```bash
 pip install -r requirements/local.txt
 ```
 
-**Configure Environment Variables:**
-
-Copy and edit the sample environment file:
+### 4. Configure environment variables
 
 ```bash
 cp .env.example .env
 ```
 
----
+Update `.env` with the settings required for your local environment. Check the environment-specific configuration before running the application.
 
-## API Documentation
+### 5. Run the project
 
-This project includes automatic API documentation using drf-spectacular. Once the server is running, you can access:
+```bash
+python manage.py migrate
+python manage.py runserver
+```
 
-- API Schema: `/schema/`
-- Swagger UI: `/schema/swagger/`
-- ReDoc: `/schema/redoc/`
+## API documentation
 
-The root URL (`/`) redirects to the Swagger UI for convenient API exploration during development.
+Once the development server is running, the API documentation is available at:
 
----
+| Documentation | Path |
+| --- | --- |
+| OpenAPI schema | `/schema/` |
+| Swagger UI | `/schema/swagger/` |
+| ReDoc | `/schema/redoc/` |
 
-## Developer Tools & Commands
+The root URL (`/`) redirects to Swagger UI.
 
-Before committing your code, ensure you run the tests, pre-commit hooks, and Ruff formatter to maintain high code quality.
+## Tests and code quality
 
-**Testing:**
-
-Run all tests with:
+**Run tests**
 
 ```bash
 pytest
-# For specific directories:
-pytest path/to/tests_directory
 ```
 
-Check coverage with:
+**Check test coverage**
 
 ```bash
 coverage run -m pytest
 coverage report
 ```
 
-**Code Quality:**
-
-Use Ruff for linting and formatting:
+**Lint and format with Ruff**
 
 ```bash
 ruff check .
-ruff check . --fix
+ruff format .
 ```
 
-Pre-commit hooks ensure quality before each commit:
+**Run pre-commit checks**
 
 ```bash
 pre-commit run --all-files
 ```
 
----
+## Conventions
 
-## Styleguide & Best Practices
+- Keep views small and focused on HTTP concerns.
+- Put business rules and data changes in **services**.
+- Put reusable read queries in **selectors**.
+- Use dedicated serializers for input, output, and filtering where appropriate.
+- Extend `BaseModel` for common model behavior.
+- Raise DRF exceptions such as `ValidationError`, `NotFound`, and `PermissionDenied` so errors follow the shared response format.
 
-**Coding Conventions:**
-Use `snake_case` for functions and variables, and `CamelCase` for classes. Maintain a consistent project structure to promote readability and maintainability.
+## Why this project exists
 
-**Views & APIs:**
-
-- Build each endpoint in its own view class to enforce a single responsibility.
-- Delegate all business logic to services and selectors.
-- Define dedicated serializers (for input, output, filtering, etc.) as inner classes to keep each view self-contained. Use inline serializers only for nested data structures.
-
-**Models:**
-Extend from `BaseModel` to benefit from standardized behavior (UUIDs, timestamps, soft deletion) and keep models lean by offloading logic where appropriate.
-
-**Services & Selectors:**
-
-- **Services:** Handle business logic and data manipulation.
-- **Selectors:** Centralize and optimize data retrieval. This clear separation supports easier testing and code maintenance.
-
-**Error Handling:**
-Raise DRF exception classes (such as `ValidationError`, `NotFound`, and `PermissionDenied`) directly in your code. A centralized error handler provides uniform error responses.
+This isn't intended to be a framework for every possible Django application. It's a starting point based on patterns I've found useful when working on API-driven products. The goal is to spend less time setting up a new project and more time building what matters.
